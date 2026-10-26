@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "the_forge",
+  "version": "${version}",
+  "name": "The Forge",
+  "description": "/video <name> <player> plays a full-screen video.",
+  "authors": [
+    "Mhdajt"
+  ],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "dev.theforge.TheForge"
+    ],
+    "client": [
+      "dev.theforge.TheForgeClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.1",
+    "minecraft": ">=26.2",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}

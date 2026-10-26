@@ -1,0 +1,4 @@
+{
+	"the_forge": { "sounds": [ { "name": "the_forge:video", "stream": true } ] },
+	"the_forge_tiny": { "sounds": [ { "name": "the_forge:video", "stream": true } ] }
+}

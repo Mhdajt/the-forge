@@ -1,0 +1,40 @@
+name: Build mod
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Works if you uploaded the_forge_mod_source.zip OR the extracted project files.
+      - name: Find the project
+        run: |
+          if [ -f the_forge_mod_source.zip ]; then
+            mkdir -p modsrc && unzip -oq the_forge_mod_source.zip -d modsrc
+            echo "PROJECT_DIR=modsrc" >> "$GITHUB_ENV"
+          else
+            echo "PROJECT_DIR=." >> "$GITHUB_ENV"
+          fi
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: current
+
+      - name: Build
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: gradle build --no-daemon --stacktrace
+
+      - name: Upload the mod jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: the-forge-video-mod
+          path: ${{ env.PROJECT_DIR }}/build/libs/*.jar
