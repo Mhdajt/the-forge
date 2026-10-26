@@ -38,7 +38,7 @@ public class TheForgeClient implements ClientModInitializer {
 		// The command is typed in the chat screen, so we open the video one tick later.
 		ClientTickEvents.END_CLIENT_TICK.register(mc -> {
 			String name = pendingName;
-			if (name == null || mc.screen != null) {
+			if (name == null || mc.gui.screen() != null) {
 				return;
 			}
 			pendingName = null;
@@ -53,7 +53,7 @@ public class TheForgeClient implements ClientModInitializer {
 					mc.player.sendSystemMessage(Component.literal("[The Forge] " + error));
 				}
 			} else {
-				mc.setScreen(new VideoScreen());
+				mc.setScreenAndShow(new VideoScreen());
 			}
 		});
 	}
