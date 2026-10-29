@@ -38,7 +38,7 @@ public final class VideoPlayer {
 	private static ArrayBlockingQueue<Frame> queue;
 	private static Thread thread;
 	private static SimpleSoundInstance sound;
-	private static boolean hasTexture;
+	private static DynamicTexture texture;
 	private static int texW;
 	private static int texH;
 
@@ -80,9 +80,9 @@ public final class VideoPlayer {
 			return "Could not open video: " + e;
 		}
 
-		queue = new ArrayBlockingQueue<>(4);
+		queue = new ArrayBlockingQueue<>(8);
 		decoderDone = false;
-		hasTexture = false;
+		texture = null;
 		running = true;
 		startNanos = System.nanoTime();
 
@@ -150,17 +150,26 @@ public final class VideoPlayer {
 			latest = f;
 		}
 		if (latest != null) {
-			final NativeImage image = latest.image();
-			texW = image.getWidth();
-			texH = image.getHeight();
-			Minecraft.getInstance().getTextureManager()
-				.register(TEXTURE, new DynamicTexture(() -> "the_forge video", image));
-			hasTexture = true;
+			NativeImage image = latest.image();
+			try {
+				if (texture == null || texW != image.getWidth() || texH != image.getHeight()) {
+					texW = image.getWidth();
+					texH = image.getHeight();
+					texture = new DynamicTexture(() -> "the_forge video", texW, texH, false);
+					Minecraft.getInstance().getTextureManager().register(TEXTURE, texture);
+				}
+				// Keep the GPU texture and its native pixel buffer for the whole video.
+				// Replacing a DynamicTexture every frame causes repeated allocation/upload setup.
+				texture.getPixels().copyFrom(image);
+				texture.upload();
+			} finally {
+				image.close();
+			}
 		}
 	}
 
 	public static boolean hasTexture() {
-		return hasTexture;
+		return texture != null;
 	}
 
 	public static int texWidth() {
@@ -195,9 +204,11 @@ public final class VideoPlayer {
 			Minecraft.getInstance().getSoundManager().stop(sound);
 			sound = null;
 		}
-		if (hasTexture) {
+		if (texture != null) {
 			Minecraft.getInstance().getTextureManager().release(TEXTURE);
-			hasTexture = false;
+			texture = null;
+			texW = 0;
+			texH = 0;
 		}
 	}
 }
